@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<robot name="box_diffdrive" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Robot params -->
+  <!-- Base (LxWxH): 0.40 x 0.30 x 0.10 m -->
+  <!-- Wheel radius: 0.075 m, separation: 0.26 m -->
+
+  <!-- ============== BASE LINK ============== -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <mass value="5.0"/>
+      <!-- solid box inertia -->
+      <inertia ixx="0.0417" ixy="0" ixz="0" iyy="0.0722" iyz="0" izz="0.1042"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.40 0.30 0.10"/>
+      </geometry>
+      <material name="blue"><color rgba="0.2 0.3 0.8 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.40 0.30 0.10"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ============== WHEELS ============== -->
+  <!-- Left wheel -->
+  <link name="left_wheel_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0008" iyz="0" izz="0.0005"/>
+    </inertial>
+    <visual>
+      <!-- rotate cylinder so its axis aligns with +Y -->
+      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.035"/>
+      </geometry>
+      <material name="black"><color rgba="0.05 0.05 0.05 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 1.5708"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.035"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Right wheel (same as left) -->
+  <link name="right_wheel_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0008" iyz="0" izz="0.0005"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.035"/>
+      </geometry>
+      <material name="black"><color rgba="0.05 0.05 0.05 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.075" length="0.035"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- Passive caster -->
+  <link name="caster_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.2"/>
+      <inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.03"/>
+      </geometry>
+      <material name="grey"><color rgba="0.5 0.5 0.5 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <sphere radius="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- ============== JOINTS ============== -->
+  <!-- Place wheel centers at z = wheel radius (0.075), y = ±0.13 (separation 0.26) -->
+  <joint name="left_wheel_joint" type="continuous">
+    <origin xyz="0 0.13 0.075" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+    <!-- rotate about +Y to roll forward when turning negative (right-hand rule) -->
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <origin xyz="0 -0.13 0.075" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Caster as ball-contact; fixed to the rear underside -->
+  <joint name="caster_joint" type="fixed">
+    <origin xyz="-0.15 0 0.03" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+  </joint>
+
+  <!-- ============== ros2_control ============== -->
+  <!-- Works with gazebo_ros2_control / gz-sim. If you’re using PyBullet, this block is ignored. -->
+  <ros2_control name="gazebo_system" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <joint name="left_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface   name="velocity"/>
+      <state_interface   name="position"/>
+    </joint>
+    <joint name="right_wheel_joint">
+      <command_interface name="velocity"/>
+      <state_interface   name="velocity"/>
+      <state_interface   name="position"/>
+    </joint>
+  </ros2_control>
+
+  <!-- Wheel collision friction (helps traction in simulators that respect it) -->
+  <gazebo reference="left_wheel_link">
+    <mu1>1.0</mu1><mu2>1.0</mu2>
+  </gazebo>
+  <gazebo reference="right_wheel_link">
+    <mu1>1.0</mu1><mu2>1.0</mu2>
+  </gazebo>
+</robot>

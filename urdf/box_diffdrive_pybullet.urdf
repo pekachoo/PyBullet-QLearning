@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<robot name="box_diffdrive_pybullet">
+  <!-- Base box: 0.40 x 0.30 x 0.10 m -->
+  <!-- Wheel radius = 0.075 m, wheel separation = 0.26 m -->
+
+  <!-- ===== base_link ===== -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <mass value="5.0"/>
+      <!-- approx solid box inertia -->
+      <inertia ixx="0.0417" ixy="0" ixz="0" iyy="0.0722" iyz="0" izz="0.1042"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry><box size="0.40 0.30 0.10"/></geometry>
+      <material name="blue"><color rgba="0.2 0.3 0.8 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.05" rpy="0 0 0"/>
+      <geometry><box size="0.40 0.30 0.10"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ===== left wheel ===== -->
+  <link name="left_wheel_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0008" iyz="0" izz="0.0005"/>
+    </inertial>
+    <visual>
+      <!-- cylinder axis along +Y (roll about Y) -->
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.075" length="0.035"/></geometry>
+      <material name="black"><color rgba="0.05 0.05 0.05 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.075" length="0.035"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ===== right wheel ===== -->
+  <link name="right_wheel_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.5"/>
+      <inertia ixx="0.0005" ixy="0" ixz="0" iyy="0.0008" iyz="0" izz="0.0005"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.075" length="0.035"/></geometry>
+      <material name="black"><color rgba="0.05 0.05 0.05 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.075" length="0.035"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ===== passive caster (ball) ===== -->
+  <link name="caster_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="0.2"/>
+      <inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0002" iyz="0" izz="0.0002"/>
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><sphere radius="0.03"/></geometry>
+      <material name="grey"><color rgba="0.6 0.6 0.6 1"/></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><sphere radius="0.03"/></geometry>
+    </collision>
+  </link>
+
+  <!-- ===== joints ===== -->
+  <!-- Wheel centers at z = 0.075 (radius), y = ±0.13 (half separation) -->
+  <joint name="left_wheel_joint" type="continuous">
+    <origin xyz="0 0.13 0.075" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+    <!-- rotate about +Y -->
+    <axis xyz="0 1 0"/>
+    <limit effort="5.0" velocity="100.0"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+  <joint name="right_wheel_joint" type="continuous">
+    <origin xyz="0 -0.13 0.075" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="5.0" velocity="100.0"/>
+    <dynamics damping="0.0" friction="0.0"/>
+  </joint>
+
+  <!-- Caster fixed under the rear -->
+  <joint name="caster_joint" type="fixed">
+    <origin xyz="-0.15 0 0.03" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+  </joint>
+</robot>
