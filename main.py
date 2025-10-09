@@ -22,20 +22,45 @@ box = p.loadURDF("/urdf/simple_box.urdf", [0,0,0.5])  # your box
 p.changeDynamics(
     box, -1,
     lateralFriction=0.25,   # plastic on wood
-    rollingFriction=0.005,  # lowkey irrelevant
-    spinningFriction=0.01   # slight resistance to yaw movement
+    rollingFriction=0.05,  # lowkey irrelevant
+    spinningFriction=0.1   # slight resistance to yaw movement
 )
+magnitude = 20
+
+left_force = 20
+right_force = 0
+
+increment = magnitude/100
+forward = True
 
 dt = 1/240
-force = [10, 0, 0]  #newtons
-application_point = [0,0.7,0]  # at center
 steps = int(10.0/dt)  # 10 seconds total with dt steps in between each second
 
-force2 = [10, 0, 0]
-application_point2 = [0,-0.5,0]
-
 for i in range(steps):
+    force = [left_force, 0, 0]  # newtons
+    application_point = [0, 0.7, 0]  # left of center
+
+    force2 = [right_force, 0, 0]
+    application_point2 = [0, -0.7, 0]
+
     p.applyExternalForce(box, -1, forceObj=force, posObj=application_point, flags=p.WORLD_FRAME)
     p.applyExternalForce(box, -1, forceObj=force2, posObj=application_point2, flags=p.WORLD_FRAME)
     p.stepSimulation()
     time.sleep(dt)
+
+    if forward:
+        right_force = right_force + increment
+        left_force = left_force - increment
+    else:
+        right_force = right_force - increment
+        left_force = left_force + increment
+
+    if right_force < 0:
+        right_force = 0
+        left_force = magnitude
+        forward = True
+    elif right_force > magnitude:
+        right_force = magnitude
+        left_force = 0
+        forward = False
+
