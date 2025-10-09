@@ -23,7 +23,7 @@ p.changeDynamics(
     box, -1,
     lateralFriction=0.25,   # plastic on wood
     rollingFriction=0.05,  # lowkey irrelevant
-    spinningFriction=0.1   # slight resistance to yaw movement
+    spinningFriction=0.15   # resist rotation
 )
 magnitude = 15
 
@@ -40,7 +40,7 @@ def getCurrAngle(quaternion):
     _, _, yaw = p.getEulerFromQuaternion(quaternion)
     return yaw
 
-def PDCalculation(error, derivative, kp=12, kd=0.3):
+def PDCalculation(error, derivative, kp=65, kd=0.3):
     return kp*error + kd*derivative
 
 def getIdealYaw(offset, lookahead=5):
@@ -55,7 +55,7 @@ error = 0
 lastError = 0
 speed = 2.0
 
-message_interval = 2.0
+message_interval = 5.0
 next_interval = message_interval
 current_time = 0
 
