@@ -25,16 +25,19 @@ p.changeDynamics(
     rollingFriction=0.05,  # lowkey irrelevant
     spinningFriction=0.1   # slight resistance to yaw movement
 )
-magnitude = 20
+magnitude = 15
 
-left_force = 20
-right_force = 0
+left_force = magnitude
+right_force = 5
 
 increment = magnitude/100
 forward = True
 
 dt = 1/240
 steps = int(10.0/dt)  # 10 seconds total with dt steps in between each second
+
+def getCurrAngle(quaternion):
+    return p.getQuaternionFromEuler(quaternion)
 
 for i in range(steps):
     force = [left_force, 0, 0]  # newtons
@@ -43,24 +46,24 @@ for i in range(steps):
     force2 = [right_force, 0, 0]
     application_point2 = [0, -0.7, 0]
 
-    p.applyExternalForce(box, -1, forceObj=force, posObj=application_point, flags=p.WORLD_FRAME)
-    p.applyExternalForce(box, -1, forceObj=force2, posObj=application_point2, flags=p.WORLD_FRAME)
+    p.applyExternalForce(box, -1, forceObj=force, posObj=application_point, flags=p.LINK_FRAME)
+    p.applyExternalForce(box, -1, forceObj=force2, posObj=application_point2, flags=p.LINK_FRAME)
     p.stepSimulation()
     time.sleep(dt)
 
-    if forward:
-        right_force = right_force + increment
-        left_force = left_force - increment
-    else:
-        right_force = right_force - increment
-        left_force = left_force + increment
-
-    if right_force < 0:
-        right_force = 0
-        left_force = magnitude
-        forward = True
-    elif right_force > magnitude:
-        right_force = magnitude
-        left_force = 0
-        forward = False
+    # if forward:
+    #     right_force = right_force + increment
+    #     left_force = left_force - increment
+    # else:
+    #     right_force = right_force - increment
+    #     left_force = left_force + increment
+    #
+    # if right_force < 0:
+    #     right_force = 0
+    #     left_force = magnitude
+    #     forward = True
+    # elif right_force > magnitude:
+    #     right_force = magnitude
+    #     left_force = 0
+    #     forward = False
 
