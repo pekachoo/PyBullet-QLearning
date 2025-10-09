@@ -28,7 +28,7 @@ p.changeDynamics(
 magnitude = 15
 
 left_force = magnitude
-right_force = 5
+right_force = magnitude
 
 increment = magnitude/100
 forward = True
@@ -40,16 +40,25 @@ def getCurrAngle(quaternion):
     return p.getQuaternionFromEuler(quaternion)
 
 for i in range(steps):
+    # (x, _, _), q = p.getBasePositionAndOrientation(box)
+
+
+
     force = [left_force, 0, 0]  # newtons
     application_point = [0, 0.7, 0]  # left of center
 
     force2 = [right_force, 0, 0]
     application_point2 = [0, -0.7, 0]
 
+    # p.applyExternalTorque(box, -1, [0, 0, 30], p.LINK_FRAME)
+
     p.applyExternalForce(box, -1, forceObj=force, posObj=application_point, flags=p.LINK_FRAME)
     p.applyExternalForce(box, -1, forceObj=force2, posObj=application_point2, flags=p.LINK_FRAME)
     p.stepSimulation()
     time.sleep(dt)
+
+    pos, orn = p.getBasePositionAndOrientation(box)
+    print(f"pos={pos}")
 
     # if forward:
     #     right_force = right_force + increment
