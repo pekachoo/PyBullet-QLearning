@@ -40,7 +40,7 @@ def getCurrAngle(quaternion):
     _, _, yaw = p.getEulerFromQuaternion(quaternion)
     return yaw
 
-def PDCalculation(error, derivative, kp=55, kd=0.3):
+def PDCalculation(error, derivative, kp=12, kd=0.3):
     return kp*error + kd*derivative
 
 def getIdealYaw(offset, lookahead=5):
@@ -59,6 +59,16 @@ message_interval = 2.0
 next_interval = message_interval
 current_time = 0
 
+def resetPos(obj, wall_offset):
+    y_random = random.uniform(-(W/2 - wall_offset), (W/2 - wall_offset))
+    yaw_random = random.uniform(-math.pi, math.pi)
+    p.resetBasePositionAndOrientation(
+        obj,
+        [0, y_random, 0],
+        p.getQuaternionFromEuler([0, 0, yaw_random])
+    )
+    p.resetBaseVelocity(obj, [0, 0, 0], [0, 0, 0])
+
 for i in range(steps):
     (_, y, _), q = p.getBasePositionAndOrientation(box)
     yaw = getCurrAngle(q)
@@ -71,17 +81,13 @@ for i in range(steps):
 
     #send a forward velocity
     p.resetBaseVelocity(box, [vx, vy, 0])
-    print(error)
+    # print(error)
     # print(y)
     # print(error)
 
-    # if current_time > next_interval:
-    #     # fx = random.uniform(-100, 0)
-    #     fy = random.uniform(-1000, 1000)
-    #     p.applyExternalForce(box, -1, [0, 100, 0], [0, 0, 0], p.LINK_FRAME)
-    #     # print(f"force=({fx:.1f}, {fy:.1f}, 0)")
-    #     print(f"force=({fy:.1f}, 0)")
-    #     next_interval += message_interval
+    if current_time > next_interval:
+        resetPos(box, 1)
+        next_interval += message_interval
 
     p.stepSimulation()
     time.sleep(dt)
