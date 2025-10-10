@@ -34,7 +34,7 @@ increment = magnitude/100
 forward = True
 
 dt = 1/240
-steps = int(10.0/dt)  # 10 seconds total with dt steps in between each second
+steps = int(50.0/dt)  # 10 seconds total with dt steps in between each second
 
 def getCurrAngle(quaternion):
     return p.getQuaternionFromEuler(quaternion)
@@ -52,8 +52,8 @@ for i in range(steps):
 
     # p.applyExternalTorque(box, -1, [0, 0, 30], p.LINK_FRAME)
 
-    p.applyExternalForce(box, -1, forceObj=force, posObj=application_point, flags=p.LINK_FRAME)
-    p.applyExternalForce(box, -1, forceObj=force2, posObj=application_point2, flags=p.LINK_FRAME)
+    # p.applyExternalForce(box, -1, forceObj=force, posObj=application_point, flags=p.LINK_FRAME)
+    # p.applyExternalForce(box, -1, forceObj=force2, posObj=application_point2, flags=p.LINK_FRAME)
     p.stepSimulation()
     time.sleep(dt)
 

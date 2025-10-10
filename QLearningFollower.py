@@ -1,4 +1,5 @@
 import pybullet as p, pybullet_data as pd, time, math, random
+import numpy as np
 
 p.connect(p.GUI)
 p.setAdditionalSearchPath(pd.getDataPath())
@@ -51,29 +52,16 @@ def getIdealYaw(offset, lookahead=5):
         offset = -lookahead
     return -math.atan2(offset, math.sqrt(math.pow(lookahead, 2) - math.pow(offset, 2)))
 
-def y_to_bin_index(y, offset_interval, y_max):
-    #round y to interval of 0.25 and then convert it to its respective bin index
-    y_clamped = np.clip(y, -y_max, y_max)
-    normalize = y_clamped + y_max
-    nearest = round(normalize / offset_interval) * offset_interval
-    return int(nearest / offset_interval)
 
-def yaw_to_bin_index(yaw, yaw_interval):
-    #round y to interval of pi/6 and then give it the respective bin
+def steer_right(obj):
+    p.applyExternalTorque(obj, -1, [0, 0, 10], p.LINK_FRAME)
 
-    #yaw is capped -pi to pi already
-    yaw_shifted = yaw + math.pi
-    nearest = round(yaw_shifted / yaw_interval) * yaw_interval
-    bin_index = int(nearest / yaw_interval)
-    return bin_index
+def steer_left(obj):
+    p.applyExternalTorque(obj, -1, [0, 0, -10], p.LINK_FRAME)
 
-def state_to_bin_index(y, offset_interval, y_max, num_yaw_bins, yaw, yaw_interval):
-    y_bin = y_to_bin_index(y, offset_interval, y_max)
-    yaw_bin = yaw_to_bin_index(yaw, yaw_interval)
-    return int(y_bin*num_yaw_bins + yaw_bin)
+def go_forward(obj):
+    p.applyExternalTorque(obj, 1, [0, 0, 0], p.LINK_FRAME)
 
-error = 0
-lastError = 0
 speed = 2.0
 
 message_interval = 5.0
@@ -90,18 +78,54 @@ def resetPos(obj, wall_offset):
     )
     p.resetBaseVelocity(obj, [0, 0, 0], [0, 0, 0])
 
+#y is in 0.25 intervals, yaw is in intervals of pi/6
+y_max = 4
+yaw_max = math.pi
+offset_interval = 0.25
+yaw_interval = 30 * math.pi/180
+num_actions = 3
+
+num_states = int(2*y_max/offset_interval*2*yaw_max/yaw_interval)
+
+#actions and then
+QTable = np.zeros((num_states, num_actions))
+
+def y_to_bin_index(y):
+    #round y to interval of 0.25 and then convert it to its respective bin index
+    y_clamped = np.clip(y, -y_max, y_max)
+    normalize = y_clamped + y_max
+    nearest = round(normalize / offset_interval) * offset_interval
+    return int(nearest / offset_interval)
+
+def state_to_index(y, yaw):
+    y_clamped = np.clip(y, -y_max, y_max)
+    yaw = np.clip(yaw, -yaw_max, yaw_max)
+    return int((y_clamped - y) // offset_interval)
+
+
+def calculateReward(y, yaw):
+    y_cost = y*-10
+    yaw_cost = abs(getIdealYaw(yaw) - yaw)*-22
+    return yaw_cost + y_cost
+
+#randomness param
+epsilon = 1.0
+
 for i in range(steps):
     (x, y, _), q = p.getBasePositionAndOrientation(box)
     yaw = getCurrAngle(q)
-    error = getIdealYaw(y) - yaw
-    # derivative = (error - lastError)/dt
-    derivative = 0
-    p.applyExternalTorque(box, -1, [0, 0, PDCalculation(error, derivative)], p.LINK_FRAME)
+
+    state = (y, yaw)
+
     vx = speed * math.cos(yaw)
     vy = speed * math.sin(yaw)
 
     #send a forward velocity
     p.resetBaseVelocity(box, [vx, vy, 0])
+
+
+
+
     print(x)
     # print(y)
     # print(error)
@@ -114,4 +138,3 @@ for i in range(steps):
     time.sleep(dt)
     lastError = error
     current_time += dt
-
