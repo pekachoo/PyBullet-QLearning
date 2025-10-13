@@ -1,0 +1,8 @@
+{
+  "offset_interval": 0.5,
+  "y_max": 4,
+  "yaw_interval": 0.5235987755982988,
+  "num_y_bins": 17,
+  "num_yaw_bins": 13,
+  "num_actions": 3
+}

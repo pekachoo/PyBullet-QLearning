@@ -51,26 +51,7 @@ def getIdealYaw(offset, lookahead=5):
         offset = -lookahead
     return -math.atan2(offset, math.sqrt(math.pow(lookahead, 2) - math.pow(offset, 2)))
 
-def y_to_bin_index(y, offset_interval, y_max):
-    #round y to interval of 0.25 and then convert it to its respective bin index
-    y_clamped = np.clip(y, -y_max, y_max)
-    normalize = y_clamped + y_max
-    nearest = round(normalize / offset_interval) * offset_interval
-    return int(nearest / offset_interval)
 
-def yaw_to_bin_index(yaw, yaw_interval):
-    #round y to interval of pi/6 and then give it the respective bin
-
-    #yaw is capped -pi to pi already
-    yaw_shifted = yaw + math.pi
-    nearest = round(yaw_shifted / yaw_interval) * yaw_interval
-    bin_index = int(nearest / yaw_interval)
-    return bin_index
-
-def state_to_bin_index(y, offset_interval, y_max, num_yaw_bins, yaw, yaw_interval):
-    y_bin = y_to_bin_index(y, offset_interval, y_max)
-    yaw_bin = yaw_to_bin_index(yaw, yaw_interval)
-    return int(y_bin*num_yaw_bins + yaw_bin)
 
 error = 0
 lastError = 0
@@ -96,7 +77,8 @@ for i in range(steps):
     error = getIdealYaw(y) - yaw
     # derivative = (error - lastError)/dt
     derivative = 0
-    p.applyExternalTorque(box, -1, [0, 0, PDCalculation(error, derivative)], p.LINK_FRAME)
+    # p.applyExternalTorque(box, -1, [0, 0, PDCalculation(error, derivative)], p.LINK_FRAME)
+    p.applyExternalTorque(box, -1, [0, 0, 10], p.LINK_FRAME)
     vx = speed * math.cos(yaw)
     vy = speed * math.sin(yaw)
 
